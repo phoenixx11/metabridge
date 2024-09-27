@@ -1,0 +1,31 @@
+.hero {
+  text-align: center;
+  background: url('/images/metaverse-bg.jpg') center/cover no-repeat;
+  color: #fff;
+  padding: 100px 0;
+}
+
+.title {
+  font-size: 48px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+}
+
+.subtitle {
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+.cta {
+  margin-top: 30px;
+  background-color: #00f2ff;
+  color: #121212;
+  padding: 15px 30px;
+  font-size: 16px;
+  border-radius: 50px;
+  transition: all 0.3s;
+}
+
+.cta:hover {
+  background-color: #00ffe7;
+}
