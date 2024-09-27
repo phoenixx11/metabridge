@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const SCROLL_API_URL = `https://scroll-mainnet.g.alchemy.com/v2/YOUR_API_KEY`;
+const SCROLL_API_URL = "https://scroll-sepolia.g.alchemy.com/v2/ew0W6Qt-DdC85_EPBgLeFpEtzcELieZE";
 
 export async function GET() {
   const payload = {
