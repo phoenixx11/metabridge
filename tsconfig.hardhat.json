@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist",
+      "rootDir": "./",
+      "lib": ["es6", "esnext"],
+      "incremental": true
+    },
+    "include": ["hardhat.config.ts", "scripts", "test"],
+    "exclude": ["node_modules", "next-env.d.ts", "**/*.tsx"]
+  }
+  

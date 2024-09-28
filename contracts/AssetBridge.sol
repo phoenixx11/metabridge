@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract AssetBridge is Ownable, ReentrancyGuard {
+contract AssetBridge is Ownable {
     struct Asset {
         address owner;
         address contractAddress;
@@ -21,14 +20,11 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         bool isActive;
     }
 
-    // Mapping from asset ID to Asset details
     mapping(uint256 => Asset) public assets;
     uint256 public assetCount;
 
-    // Mapping to track active rentals
     mapping(uint256 => Rental) public rentals;
 
-    // Events
     event AssetBridged(
         uint256 indexed assetId,
         address indexed user,
@@ -53,8 +49,11 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         address indexed renter
     );
 
-    // Bridge an asset from metaverse to real world
-    function bridgeAsset(address _contractAddress, uint256 _tokenId) external nonReentrant {
+    // Constructor that sets the initial owner
+    constructor() Ownable(msg.sender) {
+    }
+
+    function bridgeAsset(address _contractAddress, uint256 _tokenId) external {
         IERC721(_contractAddress).transferFrom(msg.sender, address(this), _tokenId);
         assets[assetCount] = Asset({
             owner: msg.sender,
@@ -67,8 +66,7 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         assetCount++;
     }
 
-    // Collateralize an asset for real-world loan
-    function collateralizeAsset(uint256 _assetId, uint256 _value) external nonReentrant {
+    function collateralizeAsset(uint256 _assetId, uint256 _value) external {
         Asset storage asset = assets[_assetId];
         require(asset.owner == msg.sender, "Not the asset owner");
         require(!asset.isCollateralized, "Asset already collateralized");
@@ -79,18 +77,15 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         emit AssetCollateralized(_assetId, msg.sender, _value);
     }
 
-    // Rent out an asset
-    function rentAsset(uint256 _assetId, uint256 _rentalPeriod) external payable nonReentrant {
+    function rentAsset(uint256 _assetId, uint256 _rentalPeriod) external payable {
         Asset storage asset = assets[_assetId];
         require(asset.owner != msg.sender, "Owner cannot rent their own asset");
         require(asset.isCollateralized, "Asset not collateralized");
         require(msg.value > 0, "Rental payment required");
 
-        // Check if the asset is already rented
         Rental storage currentRental = rentals[_assetId];
         require(!currentRental.isActive, "Asset already rented");
 
-        // Record the rental
         rentals[_assetId] = Rental({
             renter: msg.sender,
             rentalPeriod: _rentalPeriod,
@@ -101,8 +96,7 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         emit AssetRentalStarted(_assetId, msg.sender, _rentalPeriod);
     }
 
-    // End a rental
-    function endRental(uint256 _assetId) external nonReentrant {
+    function endRental(uint256 _assetId) external {
         Rental storage rental = rentals[_assetId];
         Asset storage asset = assets[_assetId];
 
@@ -112,16 +106,12 @@ contract AssetBridge is Ownable, ReentrancyGuard {
             "Only renter or owner can end the rental"
         );
 
-        // Transfer rental payment to the owner, assuming payment handling
-        // payable(asset.owner).transfer(rental.payment);
-
         rental.isActive = false;
 
         emit AssetRentalEnded(_assetId, rental.renter);
     }
 
-    // Withdraw asset back to owner
-    function withdrawAsset(uint256 _assetId) external onlyOwner nonReentrant {
+    function withdrawAsset(uint256 _assetId) external onlyOwner {
         Asset storage asset = assets[_assetId];
         require(asset.owner != address(0), "Asset does not exist");
 
@@ -134,17 +124,10 @@ contract AssetBridge is Ownable, ReentrancyGuard {
         asset.collateralValue = 0;
         asset.isCollateralized = false;
 
-        // Remove active rental if any
         Rental storage rental = rentals[_assetId];
         if (rental.isActive) {
             rental.isActive = false;
             emit AssetRentalEnded(_assetId, rental.renter);
         }
     }
-
-    // Example usage of the reentrancy guard status
-    function isReentrancyGuardActive() external view returns (bool) {
-        return _reentrancyGuardEntered();
-    }
 }
-
