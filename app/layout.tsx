@@ -1,14 +1,21 @@
-import './globals.css';
-import Navigation from '../components/Navigation';
-import { ReactNode } from 'react';
+// app/layout.tsx
+'use client';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+import React from 'react';
+import Navigation from '../components/Navigation'; 
+import { EthereumProvider } from '../contexts/EthereumContext'; 
+import './globals.css'; 
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Navigation />  {/* Add the Navigation Bar */}
-        {children}  {/* Render the page content */}
+        <EthereumProvider> {/* Wrap the entire app in the EthereumProvider */}
+          <Navigation /> {/* Add the Navigation component */}
+          {children} {/* Render the page-specific content */}
+        </EthereumProvider>
       </body>
     </html>
   );
 }
+

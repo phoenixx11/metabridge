@@ -1,6 +1,7 @@
 // /app/api/rent/route.ts
 import { NextResponse } from 'next/server';
-import { sendRawTransaction, getTransactionReceipt, estimateGas, getGasPrice, getLogs } from '../../../utils/scrollApiUtils';
+import { ethers } from 'ethers';
+import { sendRawTransaction, getTransactionReceipt, estimateGas, getGasPrice } from '../../../utils/scrollApiUtils';
 
 /**
  * Handles renting out an asset.
@@ -26,19 +27,7 @@ export async function POST(request: Request) {
     // Wait for the transaction receipt
     const receipt = await getTransactionReceipt(txHash);
 
-    // Fetch related event logs (e.g., AssetRentalStarted)
-    const filter = {
-      fromBlock: receipt.blockNumber,
-      toBlock: receipt.blockNumber,
-      address: receipt.to, // Address of the AssetBridge contract
-      topics: [
-        ethers.utils.id('AssetRentalStarted(uint256,address,uint256)'), // Event signature
-      ],
-    };
-
-    const logs = await getLogs(filter);
-
-    return NextResponse.json({ message: 'Asset rented successfully', txHash, receipt, gasEstimate, gasPrice, logs });
+    return NextResponse.json({ message: 'Asset rented successfully', txHash, receipt, gasEstimate, gasPrice });
   } catch (error: any) {
     console.error('Rent Asset Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

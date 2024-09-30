@@ -15,10 +15,16 @@ export async function POST(request: Request) {
     }
 
     // Estimate gas for the transaction
-    const gasEstimate = await estimateGas({ data: rawTx });
+    const gasEstimate = await estimateGas(rawTx);
+    
+    // Convert gasEstimate to string if it’s a BigInt
+    const gasEstimateString = gasEstimate.toString(); 
 
     // Optionally, get current gas price
     const gasPrice = await getGasPrice();
+    
+    // Convert gasPrice to string if it’s a BigInt
+    const gasPriceString = gasPrice.toString(); 
 
     // Send the raw transaction
     const txHash = await sendRawTransaction(rawTx);
@@ -26,7 +32,13 @@ export async function POST(request: Request) {
     // Wait for the transaction receipt
     const receipt = await getTransactionReceipt(txHash);
 
-    return NextResponse.json({ message: 'Asset bridged successfully', txHash, receipt, gasEstimate, gasPrice });
+    return NextResponse.json({ 
+      message: 'Asset bridged successfully', 
+      txHash: txHash.toString(), // Ensure txHash is a string
+      receipt, // Ensure receipt doesn't have BigInt values or convert them
+      gasEstimate: gasEstimateString, 
+      gasPrice: gasPriceString 
+    });
   } catch (error: any) {
     console.error('Bridge Asset Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist",
+      "rootDir": "./",
+      "lib": ["es6", "esnext"],
+      "incremental": true
+    },
+    "ts-node": {
+    "esm": true
+    },
+    "include": ["hardhat.config.ts", "scripts", "test", "./scripts", "./test", "./typechain"],
+    "exclude": ["node_modules", "next-env.d.ts", "**/*.tsx"]
+  }
+  
