@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import styles from '../../styles/marketplace.module.css';
-import { ethers } from 'ethers';
+import { BrowserProvider, parseEther } from 'ethers';
 import detectEthereumProvider from '@metamask/detect-provider';
 
 const Marketplace: React.FC = () => {
@@ -12,73 +12,84 @@ const Marketplace: React.FC = () => {
     setError(null); // Reset error state
     setLoading(true); // Set loading state
 
-    // Detect Ethereum provider
-    const provider = await detectEthereumProvider();
-
-    if (!provider) {
-      setError('Please install MetaMask!');
-      setLoading(false);
-      return;
-    }
-
-    // Create an ethers provider
-    const ethersProvider = new ethers.BrowserProvider(provider as any);
-
     try {
-      // Request user accounts
-      const accounts = await ethersProvider.send('eth_requestAccounts');
-      if (accounts.length === 0) {
-        setError('No accounts found. Please log in to MetaMask.');
-        return;
+      // Detect Ethereum provider (MetaMask)
+      const provider = await detectEthereumProvider();
+
+      if (!provider) {
+        throw new Error('Please install MetaMask!');
       }
 
-      const userAddress = '0x3b0d49C96bCd586e3117B3647b9C7CbD22Ac9533'; // Replace with actual user address
-      const recipientAddress = '0x7F513028Fc64a758CD96216d320b3dAa50791361'; // Replace with the recipient address
-      const valueInEther = "0.1"; // Example Ether value
+      // Create ethers provider to interact with MetaMask
+      const ethersProvider = new BrowserProvider(provider as any);
 
-      // Convert Ether to Wei and then to a hex string
-      const valueInWei = ethers.parseEther(valueInEther).toHexString(); // This will include the '0x' prefix
+      // Request user accounts (MetaMask)
+      const accounts = await ethersProvider.send('eth_requestAccounts', []);
+      const userAddress = accounts[0]; // Get the user's address from MetaMask
 
-      // Convert 10 ETH to Wei
-       // Ensure this line is included
+      if (!userAddress) {
+        throw new Error('No accounts found. Please log in to MetaMask.');
+      }
 
+      // Set recipient address (where Ether will be sent)
+      const recipientAddress = '0x7F513028Fc64a758CD96216d320b3dAa50791361'; // Replace this with your recipient address
+      const valueInEther = '0.1'; // The Ether value to send
 
-      // Prepare the raw transaction
+      // Convert Ether to Wei for the transaction
+      const valueInWei = parseEther(valueInEther); // Convert Ether to Wei
+
+      // Get the signer (the account sending the transaction)
+      const signer = await ethersProvider.getSigner();
+
+      // Fetch gas price using the provider
+      const feeData = await ethersProvider.getFeeData(); // Get fee data including gas price
+      const gasPrice = feeData.gasPrice; // This is now a BigInt in ethers.js v6
+
+      // Check if gasPrice exists (it might not be available in some networks)
+      if (!gasPrice) {
+        throw new Error('Gas price not available');
+      }
+
+      // Prepare the raw transaction object
       const rawTx = {
         from: userAddress,
         to: recipientAddress,
-        value: valueInWei, // This should now be correctly formatted
-    };
+        value: valueInWei, // Ether amount in Wei as a BigNumber
+        gasLimit: BigInt(21000), // Pass gasLimit as BigInt
+        gasPrice: gasPrice, // Current gas price fetched from the provider
+      };
 
-      // Prepare the request body
+      // Prepare the request body for backend API call
       const body = {
         rawTx: {
           from: rawTx.from,
           to: rawTx.to,
-          value: rawTx.value.toString(), // Convert value to string for serialization
+          value: `0x${rawTx.value.toString(16)}`, // Ensure value has the 0x prefix
+          gasLimit: `0x${rawTx.gasLimit.toString(16)}`, // Ensure gasLimit has the 0x prefix
+          gasPrice: `0x${rawTx.gasPrice.toString(16)}`, // Ensure gasPrice has the 0x prefix
         },
       };
 
-      // Send the raw transaction to the API
+      // Send the raw transaction to your backend API
       const response = await fetch('/api/bridge', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body), // Ensure the body is serializable
+        body: JSON.stringify(body), // Send the transaction data to backend
       });
 
+      // Parse response from the backend
       const data = await response.json();
 
-      // Handle API response
       if (!response.ok) {
         throw new Error(data.error || 'Transaction failed');
       }
 
-      // Show success message
+      // Transaction was successful
       alert(`Asset bridged successfully! Transaction Hash: ${data.txHash}`);
     } catch (err: any) {
-      // Log the error and update the error state
+      // If any error occurs during trade, show the error message
       console.error('Error during trade:', err);
       setError(err.message || 'An error occurred');
     } finally {
@@ -101,7 +112,8 @@ const Marketplace: React.FC = () => {
             >
               {loading ? 'Trading...' : 'Trade'}
             </button>
-            {error && <p className={styles.error}>{error}</p>} {/* Display error message */}
+            {/* Display error message if any */}
+            {error && <p className={styles.error}>{error}</p>}
           </div>
         </div>
       </div>
@@ -110,3 +122,12 @@ const Marketplace: React.FC = () => {
 };
 
 export default Marketplace;
+
+
+
+
+
+
+
+
+
