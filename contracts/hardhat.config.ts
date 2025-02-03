@@ -8,9 +8,9 @@ import '@openzeppelin/hardhat-upgrades';
 
 
 // Hardcoded keys
-const PRIVATE_KEY = '0xbd11757a1dda972b7c67f1b1573a0a403f7b1ca8f119ffbf1d96aa7885b4910f';
-const SCROLLSCAN_API_KEY = 'SUDPPG2QG728W2G2TWKVBJEFD4GWMQG5VW';
-const ALCHEMY_API_KEY = 'ew0W6Qt-DdC85_EPBgLeFpEtzcELieZE';
+const PRIVATE_KEY = '';
+const SCROLLSCAN_API_KEY = '';
+const ALCHEMY_API_KEY = '';
 
 const config: HardhatUserConfig = {
   solidity: {
